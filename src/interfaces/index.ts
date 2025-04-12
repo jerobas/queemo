@@ -27,15 +27,8 @@ export interface IPlayer {
 }
 
 export interface VoipContextType {
-  roomId: string;
-  playerName: string;
-  summonerId: string;
   showVoip: boolean;
-  setRoomId: (id: string) => void;
   setShowVoip: React.Dispatch<React.SetStateAction<boolean>>;
-  setPlayerName: (name: string) => void;
-  setSummonerId: (name: string) => void;
-  joinedRoom: boolean;
   joinRoom: () => void;
   leaveRoom: () => void;
   users: IPlayer[];
@@ -63,8 +56,8 @@ export interface Teams {
 }
 
 export interface GameContextType {
-  teams?: Teams;
-  setTeams: React.Dispatch<React.SetStateAction<Teams | undefined>>;
+  teams: Teams;
+  setTeams: React.Dispatch<React.SetStateAction<Teams>>;
   data?: ISession;
   setData: React.Dispatch<React.SetStateAction<ISession | undefined>>;
 }
@@ -121,7 +114,7 @@ export interface ToastNotify
   extends Record<
     "success" | "error" | "info" | "warning" | "custom",
     (message: string, options?: ToastOptions) => void
-  > {}
+  > { }
 
 export interface Page {
   [key: string]: React.ReactElement;

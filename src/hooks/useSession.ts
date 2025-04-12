@@ -4,11 +4,14 @@ import { ipc, findChampionIcon } from "../utils";
 import { useGame } from "../context/gameContext";
 import { useVoip } from "../context/voipContext";
 
+import SocketService from "../services/socket";
+import PlayerService from "../services/player";
+
 const useSession = (initialIntervalMS = 2500) => {
   const [intervalMS, setIntervalMS] = useState(initialIntervalMS);
   const lastPhase = useRef<any>();
   const { setTeams, setData } = useGame();
-  const { setRoomId, setPlayerName, setSummonerId, setShowVoip, leaveRoom } =
+  const { leaveRoom, setShowVoip } =
     useVoip();
 
   const fetchSession = useCallback(async () => {
@@ -47,9 +50,9 @@ const useSession = (initialIntervalMS = 2500) => {
           ({ summonerId }) => summonerId === player.summonerId
         );
 
-        setRoomId(`${result.gameData.gameId}${isT1 ? "T1" : "T2"}`);
-        setSummonerId(player.summonerId);
-        setPlayerName(player.name);
+
+        SocketService.setRoomId(`${result.gameData.gameId}${isT1 ? "T1" : "T2"}`);
+        PlayerService.initialize(player.summonerId, player.name);
         setShowVoip(true);
       }
 
@@ -69,14 +72,9 @@ const useSession = (initialIntervalMS = 2500) => {
       );
     } else {
       setIntervalMS(2500);
-      setShowVoip(false);
     }
   }, [
-    setPlayerName,
-    setRoomId,
     setTeams,
-    setSummonerId,
-    setShowVoip,
     setData,
     leaveRoom,
   ]);

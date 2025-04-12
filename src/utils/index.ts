@@ -27,3 +27,11 @@ export const findChampionIcon = async (
 
   return `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/champion/${champion.id}.png`;
 };
+
+export const pullOne = <T>(
+  arr: T[],
+  predicate: (item: T) => boolean
+): T | undefined => {
+  const index = arr.findIndex(predicate);
+  return index !== -1 ? arr.splice(index, 1)[0] : undefined;
+};

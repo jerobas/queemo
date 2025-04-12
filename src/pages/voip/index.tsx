@@ -4,10 +4,10 @@ import {
   faMicrophone,
   faMicrophoneSlash,
 } from "@fortawesome/free-solid-svg-icons";
+import SocketService from "../../services/socket";
 
 const Voip = () => {
   const {
-    joinedRoom,
     joinRoom,
     users,
     audioStreams,
@@ -19,7 +19,7 @@ const Voip = () => {
 
   return (
     <div className="overflow-y-auto p-4 flex flex-col items-center justify-center">
-      {!joinedRoom && showVoip ? (
+      {!SocketService.isInRoom() && showVoip ? (
         <button
           onClick={joinRoom}
           className="px-5 py-3 bg-green-600 text-white rounded-md cursor-pointer text-lg w-full box-border"
@@ -52,9 +52,8 @@ const Voip = () => {
                     icon={
                       muteStates[user.name] ? faMicrophoneSlash : faMicrophone
                     }
-                    className={`text-lg ${
-                      muteStates[user.name] ? "text-red-500" : "text-green-500"
-                    }`}
+                    className={`text-lg ${muteStates[user.name] ? "text-red-500" : "text-green-500"
+                      }`}
                   />
                 </button>
               </li>
