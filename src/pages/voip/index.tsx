@@ -4,7 +4,7 @@ import {
   faMicrophone,
   faMicrophoneSlash,
 } from "@fortawesome/free-solid-svg-icons";
-import SocketService from "../../services/socket";
+import SocketService from '../../services/socket.ts'
 
 const Voip = () => {
   const {
@@ -16,6 +16,8 @@ const Voip = () => {
     myAudioRef,
     showVoip,
   } = useVoip();
+
+  console.log(muteStates)
 
   return (
     <div className="overflow-y-auto p-4 flex flex-col items-center justify-center">
@@ -29,7 +31,7 @@ const Voip = () => {
       ) : (
         <div className="w-full max-w-md mt-5">
           <ul className="list-none p-0 text-left">
-            {users.map((user) => (
+            {users.map((user) => { console.log(user); return (
               <li
                 key={user.summonerId}
                 className="mb-2 p-3 border border-gray-300 rounded-md flex justify-between items-center bg-gray-100 shadow"
@@ -57,7 +59,7 @@ const Voip = () => {
                   />
                 </button>
               </li>
-            ))}
+            )})}
           </ul>
           <div className="flex flex-wrap justify-center gap-4 mt-5">
             <audio

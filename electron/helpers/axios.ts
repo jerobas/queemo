@@ -1,13 +1,20 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import https from "https";
 import { Routes } from "../../src/interfaces";
+import 'dotenv/config'
 
 class ApiService {
   private apiClient: AxiosInstance;
 
   constructor(port: number, password: string) {
     const token = Buffer.from(`riot:${password}`).toString("base64");
-    this.apiClient = axios.create({
+    this.apiClient = process.env.DEV ? axios.create({
+      baseURL: `http://127.0.0.1:${port}`,
+      headers: {
+        Authorization: `Basic ${token}`,
+        "Content-Type": "application/json",
+      },
+    }) : axios.create({
       baseURL: `https://127.0.0.1:${port}`,
       headers: {
         Authorization: `Basic ${token}`,

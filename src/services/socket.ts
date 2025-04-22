@@ -15,13 +15,13 @@ import { pullOne } from "../utils";
 // }
 
 import PlayerService from "./player";
+import { reactive } from "../utils/reactive";
 
 class SocketService {
     private socket: Socket;
     private roomId: string | null = null;
-    private socketUsers: IPlayer[] = [];
-    private playerName: string | null = null;
-    private inRoom: boolean = false;
+    socketUsers = reactive<IPlayer[]>([]);
+    inRoom = reactive(false);  
 
     constructor() {
         this.socket = io(AWS.SOCKET, {
@@ -30,6 +30,7 @@ class SocketService {
     }
 
     connect() {
+        console.log("connect")
         this.socket.connect();
     }
 
@@ -38,23 +39,7 @@ class SocketService {
         this.socket.disconnect();
     }
 
-    setPlayerName(name: string) {
-        this.playerName = name;
-    }
-
-    getPlayerName() {
-        return this.playerName;
-    }
-
-    getSocketUsers() {
-        return this.socketUsers;
-    }
-
-    isInRoom() {
-        return this.inRoom;
-    }
-
-    setRoomId(roomId: string) {
+    setRoomId(roomId: string | null) {
         this.roomId = roomId;
     }
 
@@ -70,12 +55,28 @@ class SocketService {
     ) {
         this.socket.emit("joinRoom", {
             roomId: this.roomId,
-            playerName: this.playerName,
+            playerName: PlayerService.getPlayerName(),
             peerId,
-            summonerId: PlayerService.getSummonerId(),
-        });
+            summonerId: PlayerService.getSummonerId(), })
+        // }, () => this.onJoiningRoom(
+        //     teams,
+        //     connectToUsers,
+        //     removeAudioStream
+        // ));
 
-        this.inRoom = true;
+        this.onJoiningRoom(
+            teams,
+            connectToUsers,
+            removeAudioStream
+        )
+    }
+
+    onJoiningRoom(
+        teams: Teams,
+        connectToUsers: (players: IPlayer[]) => void,
+        removeAudioStream: (name: string) => void,
+    ) {
+        this.inRoom.set(true)
 
         this.socket.on("userJoined", (players: IPlayer[]) => {
             const updatedPlayers = players.map((player) => {
@@ -93,15 +94,17 @@ class SocketService {
                 new Map(updatedPlayers.map((p) => [p.summonerId, p])).values()
             );
 
-            this.socketUsers = uniquePlayers;
+            this.socketUsers.set(uniquePlayers);
             connectToUsers(uniquePlayers);
         });
 
         this.socket.on("playerDisconnected", (summonerId: string) => {
-            const disconnectedUser = pullOne(this.socketUsers, (user) => user.summonerId === summonerId);
+            let newUsers = [...this.socketUsers.get()]
+            const disconnectedUser = pullOne(newUsers, (user) => user.summonerId === summonerId);
 
             if (disconnectedUser) {
                 removeAudioStream(disconnectedUser.name);
+                this.socketUsers.set(newUsers)
             }
         });
     }
@@ -109,13 +112,17 @@ class SocketService {
     leaveRoom() {
         this.socket.emit("leaveRoom", {
             roomId: this.roomId,
-            playerName: this.playerName,
+            playerName: PlayerService.getPlayerName(),
         });
         this.removeAllListeners();
-        this.inRoom = false;
-        this.roomId = null;
-        this.playerName = null;
-        this.socketUsers = [];
+
+        this.inRoom.set(false)
+        this.inRoom.clear()
+        
+        this.socketUsers.set([])
+        this.socketUsers.clear()
+
+        this.disconnect()
     }
 }
 

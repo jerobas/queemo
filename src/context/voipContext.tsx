@@ -4,6 +4,8 @@ import {
   useState,
   useRef,
   useCallback,
+  useEffect,
+  useMemo
 } from "react";
 ///import { useToast } from "./toastContext";
 import { useGame } from "./gameContext";
@@ -31,6 +33,15 @@ export const VoipProvider = ({ children }: VoipProviderProps) => {
 
   const myAudioRef = useRef<MediaStream | null>(null);
   const navigate = useNavigate();
+
+  console.log("rerunning VoipProvider")
+
+  const [version, setVersion] = useState(0);
+
+  useEffect(() => {
+    SocketService.socketUsers.onChange(() => setVersion(v => v + 1));
+    SocketService.inRoom.onChange(() => setVersion(v => v + 1));
+  }, []);
 
   //const notify = useToast();
   const { teams } = useGame();
@@ -83,14 +94,9 @@ export const VoipProvider = ({ children }: VoipProviderProps) => {
       callCallback,
       openCallback
     );
-
-    return () => {
-      SocketService.disconnect();
-      PeerService.disconnect();
-    };
   }, [selectedDeviceId]);
 
-  const leaveRoom = () => {
+  const leaveRoom = useCallback(() => {
     SocketService.leaveRoom();
 
     if (myAudioRef.current) {
@@ -104,7 +110,7 @@ export const VoipProvider = ({ children }: VoipProviderProps) => {
     setMuteStates({});
     setShowVoip(false);
     navigate("/");
-  }
+  }, []);
 
   const addAudioStream = useCallback((name: string, stream: MediaStream) => {
     if (name)
@@ -125,7 +131,7 @@ export const VoipProvider = ({ children }: VoipProviderProps) => {
 
   const toggleMute = useCallback(
     (targetPlayerName: string) => {
-      const playerName = SocketService.getPlayerName();
+      const playerName = PlayerService.getPlayerName();
       if (!playerName) return;
 
       if (targetPlayerName === playerName) {
@@ -174,19 +180,29 @@ export const VoipProvider = ({ children }: VoipProviderProps) => {
     [audioStreams, muteStates, selectedDeviceId]
   );
 
+  const voipContextValue = useMemo(() => ({
+    joinRoom,
+    leaveRoom,
+    users: SocketService.socketUsers.get(),
+    audioStreams,
+    muteStates,
+    toggleMute,
+    myAudioRef,
+    showVoip,
+    setShowVoip,
+  }), [
+    joinRoom,
+    leaveRoom,
+    audioStreams,
+    muteStates,
+    toggleMute,
+    showVoip,
+    version
+  ]);
+
   return (
     <VoipContext.Provider
-      value={{
-        joinRoom,
-        leaveRoom,
-        users: SocketService.getSocketUsers(),
-        audioStreams,
-        muteStates,
-        toggleMute,
-        myAudioRef,
-        showVoip,
-        setShowVoip,
-      }}
+      value={voipContextValue}
     >
       {children}
     </VoipContext.Provider>

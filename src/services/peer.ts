@@ -5,24 +5,28 @@ import {
 } from "../interfaces";
 
 class PeerService {
-    private peer: Peer;
-
-    constructor() {
-        this.peer = new (Peer as new (id: string | undefined, options?: PeerOptions) => Peer)(
-            undefined,
-            {
-                host: AWS.PEER as string,
-                port: AWS.PERR_PORT as number,
-                path: AWS.PATH as string,
-            }
-        );
+    private peer: Peer | null = null;
+  
+    getInstance(): Peer {
+      if (!this.peer) throw new Error("Peer not initialized");
+      return this.peer;
     }
 
     initialize(callCallback: (call: MediaConnection) => void, openCallback: (id: string) => void) {
-        this.peer.on("open", (id: string) => {
-            openCallback(id);
-        });
-        this.peer.on("call", callCallback);
+        if (!this.peer) {
+            this.peer = new (Peer as new (id: string | undefined, options?: PeerOptions) => Peer)(
+                undefined,
+                {
+                    host: AWS.PEER as string,
+                    port: AWS.PERR_PORT as number,
+                    path: AWS.PATH as string,
+                }
+            );
+            this.peer.on("open", (id: string) => {
+                openCallback(id);
+            });
+            this.peer.on("call", callCallback);
+        }
     }
 
     connectToUser(
@@ -32,7 +36,8 @@ class PeerService {
         addAudioStream: (name: string, stream: MediaStream) => void,
         removeAudioStream: (name: string) => void
     ) {
-        const call = this.peer.call(
+        console.log(playerName)
+        const call = this.getInstance().call(
             player.peerId,
             myAudioRef.current!,
             {
@@ -67,15 +72,15 @@ class PeerService {
 
     disconnect() {
         //if (peerInstanceRef.current) {
-        Object.values(this.peer.connections).forEach(
+        Object.values(this.getInstance().connections).forEach(
             (connectionArray) => {
                 connectionArray.forEach((connection: any) => {
                     if (connection.close) connection.close();
                 });
             }
         );
-        this.peer.disconnect();
-        this.peer.destroy();
+        this.getInstance().disconnect();
+        this.getInstance().destroy();
         //}
     }
 }
