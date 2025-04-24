@@ -126,10 +126,10 @@ class SocketService {
         connectToUsers(uniquePlayers)
 
         this.socket.on(SOCKET_CLIENT_EVENTS.USER_JOINED, (player: IPlayer) =>
-            this.eventHandlers[SOCKET_CLIENT_EVENTS.USER_JOINED]({ player, teams }));
+            this.eventHandlers[SOCKET_CLIENT_EVENTS.USER_JOINED].call(this, { player, teams }));
 
         this.socket.on(SOCKET_CLIENT_EVENTS.USER_LEFT, (summonerId: string) =>
-            this.eventHandlers[SOCKET_CLIENT_EVENTS.USER_LEFT]({ summonerId, removeAudioStream }));
+            this.eventHandlers[SOCKET_CLIENT_EVENTS.USER_LEFT].call(this, { summonerId, removeAudioStream }));
     }
 
     leaveRoom() { this.emit(SOCKET_SERVER_EVENTS.USER_LEAVE, this._leaveRoomCallback) }
