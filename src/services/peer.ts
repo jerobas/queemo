@@ -6,10 +6,10 @@ import {
 
 class PeerService {
     private peer: Peer | null = null;
-  
+
     getInstance(): Peer {
-      if (!this.peer) throw new Error("Peer not initialized");
-      return this.peer;
+        if (!this.peer) throw new Error("Peer not initialized");
+        return this.peer;
     }
 
     initialize(callCallback: (call: MediaConnection) => void, openCallback: (id: string) => void) {
@@ -36,7 +36,6 @@ class PeerService {
         addAudioStream: (name: string, stream: MediaStream) => void,
         removeAudioStream: (name: string) => void
     ) {
-        console.log(playerName)
         const call = this.getInstance().call(
             player.peerId,
             myAudioRef.current!,

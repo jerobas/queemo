@@ -41,6 +41,11 @@ export const VoipProvider = ({ children }: VoipProviderProps) => {
   useEffect(() => {
     SocketService.socketUsers.onChange(() => setVersion(v => v + 1));
     SocketService.inRoom.onChange(() => setVersion(v => v + 1));
+
+    return () => {
+      SocketService.socketUsers.clear()
+      SocketService.inRoom.clear()
+    }
   }, []);
 
   //const notify = useToast();
