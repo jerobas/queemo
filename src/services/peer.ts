@@ -27,15 +27,7 @@ class PeerService {
                 }
             );
             this.peer.on("open", (id: string) => {
-                SocketService.joinRoom(
-                    id,
-                    (players) => this.connectToUsers(
-                        players,
-                        AudioService.addAudioStream,
-                        AudioService.removeAudioStream
-                    ),
-                    AudioService.removeAudioStream
-                );
+                SocketService.joinRoom(id);
             });
             this.peer.on("call", (call) => {
                 const stream = MyStream.get()
@@ -50,8 +42,6 @@ class PeerService {
     connectToUser(
         player: IPlayer,
         playerName: string,
-        addAudioStream: (name: string, stream: MediaStream) => void,
-        removeAudioStream: (name: string) => void
     ) {
         const myStream = MyStream.get()
 
@@ -63,17 +53,15 @@ class PeerService {
             }
         );
         call?.on("stream", (userStream: MediaStream) => {
-            addAudioStream(player.name, userStream);
+            AudioService.addAudioStream(player.name, userStream);
         });
         call?.on("close", () => {
-            removeAudioStream(player.name);
+            AudioService.removeAudioStream(player.name);
         });
     }
 
     connectToUsers(
         players: IPlayer[],
-        addAudioStream: (name: string, stream: MediaStream) => void,
-        removeAudioStream: (name: string) => void
     ) {
         const playerName = PlayerService.getPlayerName()
         if (!playerName) throw new Error("No player name")
@@ -82,8 +70,6 @@ class PeerService {
             this.connectToUser(
                 player,
                 playerName,
-                addAudioStream,
-                removeAudioStream
             );
         }
     }

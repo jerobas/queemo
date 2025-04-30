@@ -28,37 +28,35 @@ const Voip = () => {
       ) : (
         <div className="w-full max-w-md mt-5">
           <ul className="list-none p-0 text-left">
-            {users.map((user) => {
-              console.log(user); return (
-                <li
-                  key={user.summonerId}
-                  className="mb-2 p-3 border border-gray-300 rounded-md flex justify-between items-center bg-gray-100 shadow"
-                >
-                  <div className="flex items-center">
-                    {user?.iconUrl && (
-                      <img
-                        src={user?.iconUrl}
-                        alt={`${user.name} icon`}
-                        className="w-8 h-8 rounded-full mr-3"
-                      />
-                    )}
-                    {user.name}
-                  </div>
-                  <button
-                    onClick={() => AudioService.toggleMute(user.name)}
-                    className="bg-transparent border-none cursor-pointer"
-                  >
-                    <FontAwesomeIcon
-                      icon={
-                        true ? faMicrophoneSlash : faMicrophone
-                      }
-                      className={`text-lg ${true ? "text-red-500" : "text-green-500"
-                        }`}
+            {users.map((user) =>
+              <li
+                key={user.summonerId}
+                className="mb-2 p-3 border border-gray-300 rounded-md flex justify-between items-center bg-gray-100 shadow"
+              >
+                <div className="flex items-center">
+                  {user?.iconUrl && (
+                    <img
+                      src={user?.iconUrl}
+                      alt={`${user.name} icon`}
+                      className="w-8 h-8 rounded-full mr-3"
                     />
-                  </button>
-                </li>
-              )
-            })}
+                  )}
+                  {user.name}
+                </div>
+                <button
+                  onClick={() => AudioService.toggleMute(user.name)}
+                  className="bg-transparent border-none cursor-pointer"
+                >
+                  <FontAwesomeIcon
+                    icon={
+                      true ? faMicrophoneSlash : faMicrophone
+                    }
+                    className={`text-lg ${true ? "text-red-500" : "text-green-500"
+                      }`}
+                  />
+                </button>
+              </li>
+            )}
           </ul>
           <div className="flex flex-wrap justify-center gap-4 mt-5">
             <audio

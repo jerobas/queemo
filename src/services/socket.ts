@@ -11,6 +11,8 @@ import { SOCKET_SERVER_EVENTS, SOCKET_CLIENT_EVENTS } from "../../shared/main.ts
 import PlayerService from "./player";
 import { reactive } from "../utils/reactive";
 import RoomService from "./room";
+import PeerService from "./peer.ts"
+import { AudioService } from "./audio.ts"
 
 type Handler = (params: any) => void;
 type Emitter = (params: any) => void
@@ -68,12 +70,11 @@ class SocketService {
     setRoomId(roomId: string | null) { this.roomId = roomId; }
 
     joinRoom(
-        peerId: string,
-        ...callbackParams: [(players: IPlayer[]) => void, (name: string) => void]
+        peerId: string
     ) {
         this.emit(SOCKET_SERVER_EVENTS.USER_JOIN, {
             peerId,
-            callback: (players: IPlayer[]) => this._joinRoomCallback(...callbackParams, players)
+            callback: (players: IPlayer[]) => this._joinRoomCallback(players)
         });
     }
 
@@ -90,38 +91,30 @@ class SocketService {
         this.socketUsers.set(updatedPlayers);
     }
 
-    private _onUserLeft({
-        summonerId,
-        removeAudioStream
-    }: {
-        summonerId: string,
-        removeAudioStream: (name: string) => void
-    }) {
+    private _onUserLeft(summonerId: string) {
         let newUsers = [...this.socketUsers.get()]
         const disconnectedUser = pullOne(newUsers, (user) => user.summonerId === summonerId);
 
         if (disconnectedUser) {
-            removeAudioStream(disconnectedUser.name);
+            AudioService.removeAudioStream(disconnectedUser.name);
             this.socketUsers.set(newUsers)
         }
     }
 
     private _joinRoomCallback(
-        connectToUsers: (players: IPlayer[]) => void,
-        removeAudioStream: (name: string) => void,
         players: IPlayer[]
     ) {
         this.inRoom.set(true)
 
         const uniquePlayers = RoomService.generateUniquePlayers(players)
         this.socketUsers.set(uniquePlayers)
-        connectToUsers(uniquePlayers)
+        PeerService.connectToUsers(uniquePlayers)
 
         this.socket.on(SOCKET_CLIENT_EVENTS.USER_JOINED, (player: IPlayer) =>
             this.eventHandlers[SOCKET_CLIENT_EVENTS.USER_JOINED].call(this, player));
 
         this.socket.on(SOCKET_CLIENT_EVENTS.USER_LEFT, (summonerId: string) =>
-            this.eventHandlers[SOCKET_CLIENT_EVENTS.USER_LEFT].call(this, { summonerId, removeAudioStream }));
+            this.eventHandlers[SOCKET_CLIENT_EVENTS.USER_LEFT].call(this, summonerId));
     }
 
     leaveRoom() { this.emit(SOCKET_SERVER_EVENTS.USER_LEAVE, this._leaveRoomCallback) }
