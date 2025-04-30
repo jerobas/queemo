@@ -93,7 +93,9 @@ class SocketService {
 
     private _onUserLeft(summonerId: string) {
         let newUsers = [...this.socketUsers.get()]
+        console.log(`newUsers ${newUsers}`)
         const disconnectedUser = pullOne(newUsers, (user) => user.summonerId === summonerId);
+        console.log(disconnectedUser)
 
         if (disconnectedUser) {
             AudioService.removeAudioStream(disconnectedUser.name);
@@ -113,8 +115,9 @@ class SocketService {
         this.socket.on(SOCKET_CLIENT_EVENTS.USER_JOINED, (player: IPlayer) =>
             this.eventHandlers[SOCKET_CLIENT_EVENTS.USER_JOINED].call(this, player));
 
-        this.socket.on(SOCKET_CLIENT_EVENTS.USER_LEFT, (summonerId: string) =>
-            this.eventHandlers[SOCKET_CLIENT_EVENTS.USER_LEFT].call(this, summonerId));
+        this.socket.on(SOCKET_CLIENT_EVENTS.USER_LEFT, (summonerId: string) => {
+            this.eventHandlers[SOCKET_CLIENT_EVENTS.USER_LEFT].call(this, summonerId)
+        })
     }
 
     leaveRoom() { this.emit(SOCKET_SERVER_EVENTS.USER_LEAVE, this._leaveRoomCallback) }
