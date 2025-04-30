@@ -56,9 +56,9 @@ const Voip = () => {
                 >
                   <FontAwesomeIcon
                     icon={
-                      isNotMuted(user.name) ? faMicrophoneSlash : faMicrophone
+                      !isNotMuted(user.name) ? faMicrophoneSlash : faMicrophone
                     }
-                    className={`text-lg ${isNotMuted(user.name) ? "text-red-500" : "text-green-500"
+                    className={`text-lg ${!isNotMuted(user.name) ? "text-red-500" : "text-green-500"
                       }`}
                   />
                 </button>
