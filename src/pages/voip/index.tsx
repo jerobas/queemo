@@ -6,6 +6,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import SocketService from '../../services/socket.ts'
 import { AudioService, MyStream } from "../../services/audio.ts";
+import PlayerService from "../../services/player.ts"
 
 const Voip = () => {
   const {
@@ -15,6 +16,12 @@ const Voip = () => {
 
   const audioStreams = AudioService.audioStreams.get()
   const users = SocketService.socketUsers.get()
+
+  const isMuted = (username: string) => {
+    if (username === PlayerService.getPlayerName())
+      return MyStream.isSelfMuted.get()
+    return AudioService.audioStreams.get()?.[username]?.getAudioTracks?.()?.[0]?.enabled ?? false;
+  }
 
   return (
     <div className="overflow-y-auto p-4 flex flex-col items-center justify-center">
@@ -49,9 +56,9 @@ const Voip = () => {
                 >
                   <FontAwesomeIcon
                     icon={
-                      true ? faMicrophoneSlash : faMicrophone
+                      isMuted(user.name) ? faMicrophoneSlash : faMicrophone
                     }
-                    className={`text-lg ${true ? "text-red-500" : "text-green-500"
+                    className={`text-lg ${isMuted(user.name) ? "text-red-500" : "text-green-500"
                       }`}
                   />
                 </button>

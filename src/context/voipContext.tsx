@@ -40,8 +40,13 @@ export const VoipProvider = ({ children }: VoipProviderProps) => {
       SocketService.inRoom.clear()
       AudioService.audioStreams.clear()
       MyStream.isSelfMuted.clear()
+      leaveRoom()
     }
   }, []);
+
+  useEffect(() => {
+    console.log("updated version")
+  }, [version])
 
   //const notify = useToast();
   //return notify.warning("Ocorreu um erro ao entrar na call");
