@@ -5,7 +5,7 @@ import PlayerService from "./player";
 
 type Handler = (session: ISession) => Promise<void>;
 
-const handlerStub = async (_session: ISession) => {}
+const handlerStub = async (_session: ISession) => { }
 
 class LcuService {
   static lastPhase: GamePhase | null = null;
@@ -17,7 +17,7 @@ class LcuService {
     [GamePhase.INPROGRESS]: LcuService.handleInProgress,
     [GamePhase.END]: LcuService.handleEnd,
   };
-  
+
   static handlers: Record<GamePhase, Handler> = Object.fromEntries(
     Object.values(GamePhase).map((phase) => {
       const fn = LcuService.phaseHandlers[phase];
@@ -50,7 +50,7 @@ class LcuService {
   }
 
   static async handleInProgress(session: ISession) {
-    // if (this.lastPhase === GamePhase.INPROGRESS) return;
+    if (this.lastPhase === GamePhase.INPROGRESS) return;
 
     const player = await ipc(IpcMethod.GET, Routes.PLAYER);
 

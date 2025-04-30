@@ -32,11 +32,14 @@ export const VoipProvider = ({ children }: VoipProviderProps) => {
   useEffect(() => {
     SocketService.socketUsers.onChange(() => setVersion(v => v + 1));
     SocketService.inRoom.onChange(() => setVersion(v => v + 1));
-    // add onChange for AudioService
+    AudioService.audioStreams.onChange(() => setVersion(v => v + 1));
+    MyStream.isSelfMuted.onChange(() => setVersion(v => v + 1));
 
     return () => {
       SocketService.socketUsers.clear()
       SocketService.inRoom.clear()
+      AudioService.audioStreams.clear()
+      MyStream.isSelfMuted.clear()
     }
   }, []);
 
@@ -47,7 +50,6 @@ export const VoipProvider = ({ children }: VoipProviderProps) => {
     // this will throw an error, handle it after
     MyStream.get()
     SocketService.connect();
-    // initialize AudioService
     // DONT FORGET TO MAKE onSelectedDeviceChange
     PeerService.initialize();
   };
