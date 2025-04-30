@@ -68,7 +68,7 @@ class AudioService {
         const track = playerStream.getAudioTracks()[0];
         track.enabled = !track.enabled;
 
-        this.audioStreams.set(current)
+        this.audioStreams.set({ ...current })
     }
 }
 

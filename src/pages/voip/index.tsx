@@ -17,9 +17,9 @@ const Voip = () => {
   const audioStreams = AudioService.audioStreams.get()
   const users = SocketService.socketUsers.get()
 
-  const isMuted = (username: string) => {
+  const isNotMuted = (username: string) => {
     if (username === PlayerService.getPlayerName())
-      return MyStream.isSelfMuted.get()
+      return !MyStream.isSelfMuted.get()
     return AudioService.audioStreams.get()?.[username]?.getAudioTracks?.()?.[0]?.enabled ?? false;
   }
 
@@ -56,9 +56,9 @@ const Voip = () => {
                 >
                   <FontAwesomeIcon
                     icon={
-                      isMuted(user.name) ? faMicrophoneSlash : faMicrophone
+                      isNotMuted(user.name) ? faMicrophoneSlash : faMicrophone
                     }
-                    className={`text-lg ${isMuted(user.name) ? "text-red-500" : "text-green-500"
+                    className={`text-lg ${isNotMuted(user.name) ? "text-red-500" : "text-green-500"
                       }`}
                   />
                 </button>
