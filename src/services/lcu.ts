@@ -2,6 +2,7 @@ import { IpcMethod, Routes, GamePhase, ISession } from "../interfaces";
 import { ipc, findChampionIcon } from "../utils";
 import SocketService from "./socket";
 import PlayerService from "./player";
+import RoomService from "./room";
 
 type Handler = (session: ISession) => Promise<void>;
 
@@ -62,6 +63,8 @@ class LcuService {
         p.championIcon = await findChampionIcon(p.championId);
       }),
     ]);
+
+    RoomService.teams = session.gameData
 
     const isT1 = session.gameData.teamOne.some(
       ({ summonerId }) => summonerId === player.summonerId

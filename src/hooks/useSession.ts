@@ -3,7 +3,6 @@ import { GamePhase, ISession } from "../interfaces";
 import { useGame } from "../context/gameContext";
 import { useVoip } from "../context/voipContext";
 import LcuService from "../services/lcu.ts";
-import RoomService from "../services/room.ts";
 
 const useSession = (initialIntervalMS = 2500) => {
   const [intervalMS, setIntervalMS] = useState(initialIntervalMS);
@@ -11,7 +10,6 @@ const useSession = (initialIntervalMS = 2500) => {
   const { leaveRoom, setShowVoip } = useVoip();
 
   const lastData = useRef<ISession | null>(null);
-  const lastTeams = useRef<string>("");
 
   useEffect(() => {
     LcuService.setContextHooks({ leaveRoom, setShowVoip });
@@ -22,16 +20,6 @@ const useSession = (initialIntervalMS = 2500) => {
 
     if (session?.error !== GamePhase.ERRORMENU) {
       await LcuService.handlePhase(session);
-
-      const currentTeams = JSON.stringify({
-        teamOne: session.gameData.teamOne,
-        teamTwo: session.gameData.teamTwo,
-      });
-
-      if (lastTeams.current !== currentTeams) {
-        RoomService.teams = session.gameData
-        lastTeams.current = currentTeams;
-      }
 
       if (JSON.stringify(lastData.current) !== JSON.stringify(session)) {
         setData(session);
