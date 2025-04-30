@@ -31,11 +31,6 @@ export interface VoipContextType {
   setShowVoip: React.Dispatch<React.SetStateAction<boolean>>;
   joinRoom: () => void;
   leaveRoom: () => void;
-  users: IPlayer[];
-  audioStreams?: Record<string, MediaStream>;
-  muteStates: Record<string, boolean>;
-  toggleMute: (targetPlayerName: string) => void;
-  myAudioRef: React.MutableRefObject<MediaStream | null>;
 }
 
 interface TeamPlayer {

@@ -31,6 +31,27 @@ class ObservableState<T> {
   }
 }
 
-const reactive = <T>(initial: T) => new ObservableState<T>(initial);
+class ObservableRecord<T> extends ObservableState<Record<string, T>> {
+  constructor(initial: Record<string, T> = {}) {
+    super(initial);
+  }
 
-export {reactive}
+  patch(key: string, val: T): void {
+    const newValue = { ...this.get(), [key]: val };
+    this.set(newValue);
+  }
+
+  delete(key: string): void {
+    const current = this.get();
+    if (!(key in current)) return;
+
+    const newValue = { ...current };
+    delete newValue[key];
+    this.set(newValue);
+  }
+}
+
+const reactive = <T>(initial: T) => new ObservableState<T>(initial);
+const reactiveRecord = <T>(initial: Record<string, T>) => new ObservableRecord<T>(initial);
+
+export { reactive, reactiveRecord }

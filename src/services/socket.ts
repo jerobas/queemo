@@ -3,7 +3,6 @@ import io, { Socket as SocketIOClient } from "socket.io-client";
 import {
     AWS,
     IPlayer,
-    Teams
 } from "../interfaces";
 import { pullOne } from "../utils";
 
@@ -11,7 +10,7 @@ import { SOCKET_SERVER_EVENTS, SOCKET_CLIENT_EVENTS } from "../../shared/main.ts
 
 import PlayerService from "./player";
 import { reactive } from "../utils/reactive";
-import { findMatchingPlayer, generateUniquePlayers } from "./room";
+import RoomService from "./room";
 
 type Handler = (params: any) => void;
 type Emitter = (params: any) => void
@@ -70,7 +69,7 @@ class SocketService {
 
     joinRoom(
         peerId: string,
-        ...callbackParams: [Teams, (players: IPlayer[]) => void, (name: string) => void]
+        ...callbackParams: [(players: IPlayer[]) => void, (name: string) => void]
     ) {
         this.emit(SOCKET_SERVER_EVENTS.USER_JOIN, {
             peerId,
@@ -78,17 +77,11 @@ class SocketService {
         });
     }
 
-    private _onUserJoined({
-        player,
-        teams
-    }: {
-        player: IPlayer,
-        teams: Teams
-    }) {
+    private _onUserJoined(player: IPlayer) {
         if (this.socketUsers.get().find(e => e.summonerId === player.summonerId))
             return
 
-        const matchingPlayer = findMatchingPlayer(teams, player)
+        const matchingPlayer = RoomService.findMatchingPlayer(player)
         const updatedPlayers = [
             ...this.socketUsers.get(),
             matchingPlayer
@@ -114,19 +107,18 @@ class SocketService {
     }
 
     private _joinRoomCallback(
-        teams: Teams,
         connectToUsers: (players: IPlayer[]) => void,
         removeAudioStream: (name: string) => void,
         players: IPlayer[]
     ) {
         this.inRoom.set(true)
 
-        const uniquePlayers = generateUniquePlayers(teams, players)
+        const uniquePlayers = RoomService.generateUniquePlayers(players)
         this.socketUsers.set(uniquePlayers)
         connectToUsers(uniquePlayers)
 
         this.socket.on(SOCKET_CLIENT_EVENTS.USER_JOINED, (player: IPlayer) =>
-            this.eventHandlers[SOCKET_CLIENT_EVENTS.USER_JOINED].call(this, { player, teams }));
+            this.eventHandlers[SOCKET_CLIENT_EVENTS.USER_JOINED].call(this, player));
 
         this.socket.on(SOCKET_CLIENT_EVENTS.USER_LEFT, (summonerId: string) =>
             this.eventHandlers[SOCKET_CLIENT_EVENTS.USER_LEFT].call(this, { summonerId, removeAudioStream }));

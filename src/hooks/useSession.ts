@@ -3,10 +3,11 @@ import { GamePhase, ISession } from "../interfaces";
 import { useGame } from "../context/gameContext";
 import { useVoip } from "../context/voipContext";
 import LcuService from "../services/lcu.ts";
+import RoomService from "../services/room.ts";
 
 const useSession = (initialIntervalMS = 2500) => {
   const [intervalMS, setIntervalMS] = useState(initialIntervalMS);
-  const { setTeams, setData } = useGame();
+  const { setData } = useGame();
   const { leaveRoom, setShowVoip } = useVoip();
 
   const lastData = useRef<ISession | null>(null);
@@ -28,7 +29,7 @@ const useSession = (initialIntervalMS = 2500) => {
       });
 
       if (lastTeams.current !== currentTeams) {
-        setTeams(session.gameData);
+        RoomService.teams = session.gameData
         lastTeams.current = currentTeams;
       }
 
@@ -39,7 +40,7 @@ const useSession = (initialIntervalMS = 2500) => {
     } else {
       setIntervalMS(2500);
     }
-  }, [setTeams, setData]);
+  }, [setData]);
 
   useEffect(() => {
     fetchSession();

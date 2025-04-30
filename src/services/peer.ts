@@ -1,8 +1,12 @@
-import Peer, { MediaConnection, PeerOptions } from "peerjs";
+import Peer, { PeerOptions } from "peerjs";
 import {
     AWS,
     IPlayer,
 } from "../interfaces";
+import PlayerService from "./player.ts"
+import { AudioService, MyStream } from "./audio.ts";
+
+import SocketService from "./socket.ts"
 
 class PeerService {
     private peer: Peer | null = null;
@@ -12,7 +16,7 @@ class PeerService {
         return this.peer;
     }
 
-    initialize(callCallback: (call: MediaConnection) => void, openCallback: (id: string) => void) {
+    initialize() {
         if (!this.peer) {
             this.peer = new (Peer as new (id: string | undefined, options?: PeerOptions) => Peer)(
                 undefined,
@@ -23,22 +27,37 @@ class PeerService {
                 }
             );
             this.peer.on("open", (id: string) => {
-                openCallback(id);
+                SocketService.joinRoom(
+                    id,
+                    (players) => this.connectToUsers(
+                        players,
+                        AudioService.addAudioStream,
+                        AudioService.removeAudioStream
+                    ),
+                    AudioService.removeAudioStream
+                );
             });
-            this.peer.on("call", callCallback);
+            this.peer.on("call", (call) => {
+                const stream = MyStream.get()
+                call.answer(stream);
+                call.on("stream", (userStream: MediaStream) => {
+                    AudioService.addAudioStream(call.metadata.playerName, userStream);
+                });
+            });
         }
     }
 
     connectToUser(
         player: IPlayer,
         playerName: string,
-        myAudioRef: React.RefObject<MediaStream>,
         addAudioStream: (name: string, stream: MediaStream) => void,
         removeAudioStream: (name: string) => void
     ) {
+        const myStream = MyStream.get()
+
         const call = this.getInstance().call(
             player.peerId,
-            myAudioRef.current!,
+            myStream,
             {
                 metadata: { playerName },
             }
@@ -53,16 +72,16 @@ class PeerService {
 
     connectToUsers(
         players: IPlayer[],
-        playerName: string,
-        myAudioRef: React.RefObject<MediaStream>,
         addAudioStream: (name: string, stream: MediaStream) => void,
         removeAudioStream: (name: string) => void
     ) {
+        const playerName = PlayerService.getPlayerName()
+        if (!playerName) throw new Error("No player name")
+
         for (const player of players) {
             this.connectToUser(
                 player,
                 playerName,
-                myAudioRef,
                 addAudioStream,
                 removeAudioStream
             );

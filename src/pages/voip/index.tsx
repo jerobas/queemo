@@ -5,19 +5,16 @@ import {
   faMicrophoneSlash,
 } from "@fortawesome/free-solid-svg-icons";
 import SocketService from '../../services/socket.ts'
+import { AudioService, MyStream } from "../../services/audio.ts";
 
 const Voip = () => {
   const {
     joinRoom,
-    users,
-    audioStreams,
-    muteStates,
-    toggleMute,
-    myAudioRef,
     showVoip,
   } = useVoip();
 
-  console.log(muteStates)
+  const audioStreams = AudioService.audioStreams.get()
+  const users = SocketService.socketUsers.get()
 
   return (
     <div className="overflow-y-auto p-4 flex flex-col items-center justify-center">
@@ -48,14 +45,14 @@ const Voip = () => {
                     {user.name}
                   </div>
                   <button
-                    onClick={() => toggleMute(user.name)}
+                    onClick={() => AudioService.toggleMute(user.name)}
                     className="bg-transparent border-none cursor-pointer"
                   >
                     <FontAwesomeIcon
                       icon={
-                        muteStates[user.name] ? faMicrophoneSlash : faMicrophone
+                        true ? faMicrophoneSlash : faMicrophone
                       }
-                      className={`text-lg ${muteStates[user.name] ? "text-red-500" : "text-green-500"
+                      className={`text-lg ${true ? "text-red-500" : "text-green-500"
                         }`}
                     />
                   </button>
@@ -66,8 +63,8 @@ const Voip = () => {
           <div className="flex flex-wrap justify-center gap-4 mt-5">
             <audio
               ref={(ref) => {
-                if (ref && myAudioRef.current) {
-                  ref.srcObject = myAudioRef.current;
+                if (ref) {
+                  ref.srcObject = MyStream.get();
                 }
               }}
               muted
