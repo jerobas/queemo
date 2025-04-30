@@ -34,7 +34,6 @@ const useSession = (initialIntervalMS = 2500) => {
       }
 
       if (JSON.stringify(lastData.current) !== JSON.stringify(session)) {
-        console.log("teste")
         setData(session);
         lastData.current = session;
       }

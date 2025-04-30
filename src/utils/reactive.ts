@@ -14,6 +14,7 @@ class ObservableState<T> {
 
   set(newValue: T): void {
     if (this.value === newValue) return;
+    console.log("mudando!", newValue)
     this.value = newValue;
     this.emit();
   }

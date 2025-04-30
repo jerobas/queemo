@@ -25,8 +25,6 @@ export const VoipProvider = ({ children }: VoipProviderProps) => {
 
   const navigate = useNavigate();
 
-  console.log("rerunning VoipProvider")
-
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
@@ -62,7 +60,6 @@ export const VoipProvider = ({ children }: VoipProviderProps) => {
   const leaveRoom = () => {
     SocketService.leaveRoom();
 
-    // create clear for AudioService
     AudioService.audioStreams.clear();
 
     PeerService.disconnect();

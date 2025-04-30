@@ -41,7 +41,6 @@ export const AudioInputProvider = ({
       setAvailableDevices(audioInputs);
 
       const savedId = await ipc(IpcMethod.GET_AUDIO, "");
-      console.log(savedId);
 
       if (savedId && audioInputs.some((d) => d.deviceId === savedId)) {
         setSelectedDeviceId(savedId);
