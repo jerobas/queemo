@@ -102,14 +102,16 @@ export enum IpcMethod {
   UPDATER_DOWNLOAD = "updater:download",
   UPDATER_INSTALL = "updater:install",
   SET_AUDIO = "audio:set",
-  GET_AUDIO = "audio:get"
+  GET_AUDIO = "audio:get",
+  GET_AUTO_JOIN_CALL = "autoJoinCall:get",
+  SET_AUTO_JOIN_CALL = "autoJoinCall:set",
 }
 
 export interface ToastNotify
   extends Record<
     "success" | "error" | "info" | "warning" | "custom",
     (message: string, options?: ToastOptions) => void
-  > { }
+  > {}
 
 export interface Page {
   [key: string]: React.ReactElement;
@@ -125,4 +127,5 @@ export interface VoipProviderProps {
 
 export interface IStore {
   audioDeviceId: string | null;
+  autoJoinCall: boolean;
 }

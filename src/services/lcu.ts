@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { IpcMethod, Routes, GamePhase, ISession } from "../interfaces";
 import { ipc, findChampionIcon } from "../utils";
 import SocketService from "./socket";
@@ -6,12 +7,15 @@ import RoomService from "./room";
 
 type Handler = (session: ISession) => Promise<void>;
 
-const handlerStub = async (_session: ISession) => { }
+const handlerStub = async (_session: ISession) => {};
 
 class LcuService {
   static lastPhase: GamePhase | null = null;
   static leaveRoom: () => void;
   static setShowVoip: (b: boolean) => void;
+  static autoJoin: boolean;
+  static joinRoom: () => void;
+  static navigate: ReturnType<typeof useNavigate>;
 
   static phaseHandlers: Partial<Record<GamePhase, Handler>> = {
     [GamePhase.READYCHECK]: LcuService.handleReadyCheck,
@@ -26,9 +30,24 @@ class LcuService {
     })
   ) as Record<GamePhase, Handler>;
 
-  static setContextHooks({ leaveRoom, setShowVoip }: { leaveRoom: () => void; setShowVoip: (b: boolean) => void }) {
+  static setContextHooks({
+    leaveRoom,
+    setShowVoip,
+    autoJoinCall,
+    joinRoom,
+    navigate,
+  }: {
+    leaveRoom: () => void;
+    setShowVoip: (b: boolean) => void;
+    autoJoinCall: boolean;
+    joinRoom: () => void;
+    navigate: ReturnType<typeof useNavigate>;
+  }) {
     this.leaveRoom = leaveRoom;
     this.setShowVoip = setShowVoip;
+    this.autoJoin = autoJoinCall;
+    this.joinRoom = joinRoom;
+    this.navigate = navigate;
   }
 
   static async getSession(): Promise<ISession> {
@@ -64,7 +83,7 @@ class LcuService {
       }),
     ]);
 
-    RoomService.teams = session.gameData
+    RoomService.teams = session.gameData;
 
     const isT1 = session.gameData.teamOne.some(
       ({ summonerId }) => summonerId === player.summonerId
@@ -73,6 +92,10 @@ class LcuService {
     SocketService.setRoomId(`${session.gameData.gameId}${isT1 ? "T1" : "T2"}`);
     PlayerService.initialize(player.summonerId, player.name);
     this.setShowVoip?.(true);
+    if (this.autoJoin) {
+      this.navigate("/voip");
+      this.joinRoom();
+    }
   }
 
   static async handleEnd(_session: ISession) {

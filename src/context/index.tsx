@@ -2,6 +2,7 @@ import { ToastProvider } from "./toastContext";
 import { GameProvider } from "./gameContext";
 import { VoipProvider } from "./voipContext";
 import { AudioInputProvider } from "./audioContext";
+import { AutoJoinCallProvider } from "./autoJoinContext";
 
 const ContextWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -9,7 +10,7 @@ const ContextWrapper = ({ children }: { children: React.ReactNode }) => {
       <AudioInputProvider>
         <GameProvider>
           <VoipProvider>
-            {children}
+            <AutoJoinCallProvider>{children}</AutoJoinCallProvider>
           </VoipProvider>
         </GameProvider>
       </AudioInputProvider>

@@ -4,24 +4,24 @@ import {
   faMicrophone,
   faMicrophoneSlash,
 } from "@fortawesome/free-solid-svg-icons";
-import SocketService from '../../services/socket.ts'
+import SocketService from "../../services/socket.ts";
 import { AudioService, MyStream } from "../../services/audio.ts";
-import PlayerService from "../../services/player.ts"
+import PlayerService from "../../services/player.ts";
 
 const Voip = () => {
-  const {
-    joinRoom,
-    showVoip,
-  } = useVoip();
+  const { joinRoom, showVoip } = useVoip();
 
-  const audioStreams = AudioService.audioStreams.get()
-  const users = SocketService.socketUsers.get()
+  const audioStreams = AudioService.audioStreams.get();
+  const users = SocketService.socketUsers.get();
 
   const isNotMuted = (username: string) => {
     if (username === PlayerService.getPlayerName())
-      return !MyStream.isSelfMuted.get()
-    return AudioService.audioStreams.get()?.[username]?.getAudioTracks?.()?.[0]?.enabled ?? false;
-  }
+      return !MyStream.isSelfMuted.get();
+    return (
+      AudioService.audioStreams.get()?.[username]?.getAudioTracks?.()?.[0]
+        ?.enabled ?? false
+    );
+  };
 
   return (
     <div className="overflow-y-auto p-4 flex flex-col items-center justify-center">
@@ -35,7 +35,7 @@ const Voip = () => {
       ) : (
         <div className="w-full max-w-md mt-5">
           <ul className="list-none p-0 text-left">
-            {users.map((user) =>
+            {users.map((user) => (
               <li
                 key={user.summonerId}
                 className="mb-2 p-3 border border-gray-300 rounded-md flex justify-between items-center bg-gray-100 shadow"
@@ -58,12 +58,13 @@ const Voip = () => {
                     icon={
                       !isNotMuted(user.name) ? faMicrophoneSlash : faMicrophone
                     }
-                    className={`text-lg ${!isNotMuted(user.name) ? "text-red-500" : "text-green-500"
-                      }`}
+                    className={`text-lg ${
+                      !isNotMuted(user.name) ? "text-red-500" : "text-green-500"
+                    }`}
                   />
                 </button>
               </li>
-            )}
+            ))}
           </ul>
           <div className="flex flex-wrap justify-center gap-4 mt-5">
             <audio

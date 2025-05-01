@@ -1,4 +1,4 @@
-export const ipc = (method: string, route: string, ...args: any[]) => {
+export const ipc = (method: string, route: string | boolean, ...args: any[]) => {
   return window.ipcRenderer.invoke(method, route, ...args);
 };
 
