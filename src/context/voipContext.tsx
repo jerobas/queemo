@@ -48,12 +48,14 @@ export const VoipProvider = ({ children }: VoipProviderProps) => {
     PeerService.initialize();
   };
 
-  const leaveRoom = () => {
+  const leaveRoom = (manualLeave: boolean = false) => {
     SocketService.leaveRoom();
 
     AudioService.audioStreams.clear();
 
     PeerService.disconnect();
+
+    if (manualLeave) return;
 
     setShowVoip(false);
     navigate("/");

@@ -30,7 +30,7 @@ export interface VoipContextType {
   showVoip: boolean;
   setShowVoip: React.Dispatch<React.SetStateAction<boolean>>;
   joinRoom: () => void;
-  leaveRoom: () => void;
+  leaveRoom: (manualLeave?: boolean) => void;
 }
 
 interface TeamPlayer {
@@ -111,7 +111,7 @@ export interface ToastNotify
   extends Record<
     "success" | "error" | "info" | "warning" | "custom",
     (message: string, options?: ToastOptions) => void
-  > {}
+  > { }
 
 export interface Page {
   [key: string]: React.ReactElement;

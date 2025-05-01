@@ -3,13 +3,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faMicrophone,
   faMicrophoneSlash,
+  faRightFromBracket
 } from "@fortawesome/free-solid-svg-icons";
 import SocketService from "../../services/socket.ts";
 import { AudioService, MyStream } from "../../services/audio.ts";
 import PlayerService from "../../services/player.ts";
 
 const Voip = () => {
-  const { joinRoom, showVoip } = useVoip();
+  const { joinRoom, showVoip, leaveRoom } = useVoip();
 
   const audioStreams = AudioService.audioStreams.get();
   const users = SocketService.socketUsers.get();
@@ -58,13 +59,18 @@ const Voip = () => {
                     icon={
                       !isNotMuted(user.name) ? faMicrophoneSlash : faMicrophone
                     }
-                    className={`text-lg ${
-                      !isNotMuted(user.name) ? "text-red-500" : "text-green-500"
-                    }`}
+                    className={`text-lg ${!isNotMuted(user.name) ? "text-red-500" : "text-green-500"
+                      }`}
                   />
                 </button>
               </li>
             ))}
+            <li className="mb-2 gap-3 p-3 border border-gray-300 rounded-md flex items-center bg-gray-100 shadow cursor-pointer"
+              onClick={(_) => leaveRoom(true)}
+            >
+              <FontAwesomeIcon icon={faRightFromBracket} className={`text-lg text-red-500 rotate-180`} />
+              <p>Sair</p>
+            </li>
           </ul>
           <div className="flex flex-wrap justify-center gap-4 mt-5">
             <audio

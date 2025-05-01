@@ -128,7 +128,8 @@ class SocketService {
   }
 
   leaveRoom() {
-    this.emit(SOCKET_SERVER_EVENTS.USER_LEAVE, this._leaveRoomCallback);
+    //this.emit(SOCKET_SERVER_EVENTS.USER_LEAVE, this._leaveRoomCallback);
+    this._leaveRoomCallback();
   }
 
   private _leaveRoomCallback() {
