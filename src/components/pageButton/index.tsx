@@ -1,19 +1,29 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Page } from "../../interfaces";
 import { Suspense } from "react";
 
-const PageButton = ({ route, name }: { route: Page; name: string }) => {
+const PageButton = ({ route, name, setIsOpen }: { route: Page; name: string, setIsOpen: React.Dispatch<React.SetStateAction<boolean>> }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const path = name === "home" ? "/" : `/${name}`
+
+  const className = [
+    "w-5 h-5 rounded focus:outline-none",
+    location.pathname === path ? "text-green-800" : "cursor-pointer text-gray-500 hover:text-green-800"
+  ].join(" ")
 
   const handleClick = () => {
-    navigate(name === "home" ? "/" : `/${name}`);
+    if (location.pathname !== path) {
+      navigate(path);
+      setIsOpen(false);
+    }
   };
 
   return (
     <li>
       <button
         id="page-button"
-        className="w-5 h-5 rounded focus:outline-none cursor-pointer text-gray-500 hover:text-green-800"
+        className={className}
         onClick={handleClick}
       >
         <Suspense
