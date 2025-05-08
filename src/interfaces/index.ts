@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { ToastOptions } from "react-toastify";
 
-const BASE_URL = "ec2-15-228-45-137.sa-east-1.compute.amazonaws.com";
+export const BASE_URL = "ec2-15-228-45-137.sa-east-1.compute.amazonaws.com";
 
 export interface ISession {
   gameData: {

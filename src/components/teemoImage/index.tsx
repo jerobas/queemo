@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { ISession } from "../../interfaces";
 import { GamePhase, Images } from "../../interfaces";
 
+import { BASE_URL } from "../../interfaces";
+
 interface TeemoImageProps {
   data?: ISession;
 }
@@ -16,7 +18,7 @@ const getImageSrc = (phase?: string) => {
 
   const image = imageMap[phase as GamePhase] || Images.MENU;
 
-  return `https://raw.githubusercontent.com/jerobas/queemo/master/public/images/${image}`;
+  return `http://${BASE_URL}:3099/${image}`;
 };
 
 const TeemoImage = ({ data }: TeemoImageProps) => {
