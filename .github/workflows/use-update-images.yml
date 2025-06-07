@@ -1,7 +1,6 @@
 on:
-  push:  # every commit, all branches
-    paths:
-      - 'public/images/**'
+  push:
+    branches: master
 
 jobs:
   update-images:
