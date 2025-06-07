@@ -1,0 +1,9 @@
+on:
+  push:  # every commit, all branches
+    paths:
+      - 'public/images/**'
+
+jobs:
+  update-images:
+    uses: jerobas/.github/.github/workflows/update-images.yml@main
+    secrets: inherit

@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { ipc } from "../utils";
 import { IpcMethod } from "../interfaces";
+import { AudioService } from "../services/audio";
 
 interface IAudioInputContext {
   selectedDeviceId: string | null;
@@ -11,7 +12,7 @@ interface IAudioInputContext {
 const audioInputContext = createContext<IAudioInputContext>({
   selectedDeviceId: null,
   availableDevices: [],
-  storeDeviceId: () => {},
+  storeDeviceId: () => { },
 });
 
 export const AudioInputProvider = ({
@@ -40,7 +41,6 @@ export const AudioInputProvider = ({
       setAvailableDevices(audioInputs);
 
       const savedId = await ipc(IpcMethod.GET_AUDIO, "");
-      console.log(savedId);
 
       if (savedId && audioInputs.some((d) => d.deviceId === savedId)) {
         setSelectedDeviceId(savedId);
@@ -55,6 +55,11 @@ export const AudioInputProvider = ({
   useEffect(() => {
     loadDevices();
   }, []);
+
+  useEffect(() => {
+    if (selectedDeviceId)
+      AudioService.onSelectedDeviceChange(selectedDeviceId)
+  }, [selectedDeviceId])
 
   return (
     <audioInputContext.Provider

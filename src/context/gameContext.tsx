@@ -11,7 +11,12 @@ const GameContext = createContext<GameContextType>({} as GameContextType);
 export const useGame = () => useContext(GameContext);
 
 export const GameProvider = ({ children }: GameProviderProps) => {
-  const [teams, setTeams] = useState<Teams>();
+  const emptyTeams = {
+    teamOne: [],
+    teamTwo: [],
+  };
+
+  const [teams, setTeams] = useState<Teams>(emptyTeams);
   const [data, setData] = useState<ISession>();
 
   return (

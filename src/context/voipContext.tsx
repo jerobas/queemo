@@ -1,291 +1,78 @@
-// @ts-nocheck
-
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-} from "react";
-import io, { Socket } from "socket.io-client";
-import Peer, { MediaConnection } from "peerjs";
-import { useToast } from "./toastContext";
-import { useGame } from "./gameContext";
-import {
-  AWS,
-  IPlayer,
-  VoipContextType,
-  VoipProviderProps,
-} from "../interfaces";
-import { useAudioInput } from "./audioContext";
+import { createContext, useContext, useState, useEffect, useMemo } from "react";
+///import { useToast } from "./toastContext";
+import { VoipContextType, VoipProviderProps } from "../interfaces";
 import { useNavigate } from "react-router-dom";
+
+import PeerService from "../services/peer.ts";
+import SocketService from "../services/socket.ts";
+import { AudioService, MyStream } from "../services/audio.ts";
 
 const VoipContext = createContext<VoipContextType>({} as VoipContextType);
 
 export const useVoip = () => useContext(VoipContext);
 
 export const VoipProvider = ({ children }: VoipProviderProps) => {
-  const [roomId, setRoomId] = useState<string>("");
-  const [playerName, setPlayerName] = useState<string>("");
-  const [summonerId, setSummonerId] = useState<string>("");
-  const [joinedRoom, setJoinedRoom] = useState<boolean>(false);
   const [showVoip, setShowVoip] = useState<boolean>(false);
-  const [users, setUsers] = useState<IPlayer[]>([]);
-  const [audioStreams, setAudioStreams] =
-    useState<Record<string, MediaStream>>();
-  const [muteStates, setMuteStates] = useState<Record<string, boolean>>({});
-  const [peerId, setPeerId] = useState<string | null>(null);
 
-  const myAudioRef = useRef<MediaStream | null>(null);
-  const peerInstanceRef = useRef<Peer | null>(null);
-  const socketRef = useRef<Socket | null>(null);
   const navigate = useNavigate();
 
-  const notify = useToast();
-  const { teams } = useGame();
-  const { selectedDeviceId } = useAudioInput();
+  const [version, setVersion] = useState(0);
 
   useEffect(() => {
-    const socket = io(AWS.SOCKET, {
-      autoConnect: false,
-    });
-
-    const peer = new Peer(undefined, {
-      host: AWS.PEER,
-      port: AWS.PERR_PORT,
-      path: AWS.PATH,
-    });
-
-    socket.connect();
-    socketRef.current = socket;
-    peerInstanceRef.current = peer;
-
-    peer.on("open", (id: string) => {
-      setPeerId(id);
-    });
-
-    peer.on("call", (call: MediaConnection) => {
-      navigator.mediaDevices
-        .getUserMedia({
-          audio: selectedDeviceId
-            ? { deviceId: { exact: selectedDeviceId } }
-            : true,
-        })
-        .then((stream) => {
-          call.answer(stream);
-          call.on("stream", (userStream: MediaStream) => {
-            addAudioStream(call.metadata.playerName, userStream);
-          });
-        });
-    });
+    SocketService.socketUsers.onChange(() => setVersion((v) => v + 1));
+    SocketService.inRoom.onChange(() => setVersion((v) => v + 1));
+    AudioService.audioStreams.onChange(() => setVersion((v) => v + 1));
+    MyStream.isSelfMuted.onChange(() => setVersion((v) => v + 1));
 
     return () => {
-      peer.disconnect();
-      socket.disconnect();
+      SocketService.socketUsers.clear();
+      SocketService.inRoom.clear();
+      AudioService.audioStreams.clear();
+      MyStream.isSelfMuted.clear();
+      leaveRoom();
     };
-  }, [selectedDeviceId]);
+  }, []);
 
   useEffect(() => {
-    if (peerId && joinedRoom) {
-      socketRef.current?.on("userJoined", (players: IPlayer[]) => {
-        const updatedPlayers = players.map((player) => {
-          const matchingPlayer = [...teams.teamOne, ...teams.teamTwo].find(
-            (teamPlayer) => teamPlayer.summonerId === player.summonerId
-          );
+    console.log("updated version");
+  }, [version]);
 
-          return {
-            ...player,
-            iconUrl: matchingPlayer ? matchingPlayer.championIcon : null,
-          };
-        });
+  //const notify = useToast();
+  //return notify.warning("Ocorreu um erro ao entrar na call");
 
-        const uniquePlayers = Array.from(
-          new Map(updatedPlayers.map((p) => [p.summonerId, p])).values()
-        );
+  const joinRoom = async () => {
+    // this will throw an error, handle it after
+    MyStream.get();
+    SocketService.connect();
+    // DONT FORGET TO MAKE onSelectedDeviceChange
+    PeerService.initialize();
+  };
 
-        setUsers(uniquePlayers);
-        connectToUsers(uniquePlayers);
-      });
-    }
-  }, [peerId, joinedRoom]);
+  const leaveRoom = (manualLeave: boolean = false) => {
+    SocketService.leaveRoom();
 
-  useEffect(() => {
-    socketRef.current?.on("playerDisconnected", (summonerId: string) => {
-      setUsers((prevUsers) =>
-        prevUsers.filter((user) => user.summonerId !== summonerId)
-      );
-      const disconnectedUser = users.find(
-        (user) => user.summonerId === summonerId
-      );
+    AudioService.audioStreams.clear();
 
-      if (disconnectedUser) {
-        removeAudioStream(disconnectedUser.name);
-      }
-    });
-  }, [users]);
+    PeerService.disconnect();
 
-  const connectToUsers = useCallback(
-    (players: IPlayer[]) => {
-      for (const player of players) {
-        if (player.peerId !== peerId) {
-          const call = peerInstanceRef.current?.call(
-            player.peerId,
-            myAudioRef.current!,
-            {
-              metadata: { playerName },
-            }
-          );
-          call?.on("stream", (userStream: MediaStream) => {
-            addAudioStream(player.name, userStream);
-          });
+    if (manualLeave) return;
 
-          call?.on("close", () => {
-            removeAudioStream(player.name);
-          });
-        }
-      }
-    },
-    [peerId, playerName]
-  );
-
-  const joinRoom = useCallback(() => {
-    if (!roomId || !playerName)
-      return notify.warning("Ocorreu um erro ao entrar na call");
-
-    navigator.mediaDevices
-      .getUserMedia({
-        audio: selectedDeviceId
-          ? { deviceId: { exact: selectedDeviceId } }
-          : true,
-      })
-      .then((stream) => {
-        myAudioRef.current = stream;
-        socketRef.current?.emit("joinRoom", {
-          roomId,
-          playerName,
-          peerId,
-          summonerId,
-        });
-        setJoinedRoom(true);
-      });
-  }, [roomId, playerName, peerId, notify, summonerId, selectedDeviceId]);
-
-  const leaveRoom = useCallback(() => {
-    socketRef.current?.emit("leaveRoom", { roomId, playerName });
-
-    if (myAudioRef.current) {
-      myAudioRef.current.getTracks().forEach((track) => track.stop());
-      myAudioRef.current = null;
-    }
-
-    if (peerInstanceRef.current) {
-      Object.values(peerInstanceRef.current.connections).forEach(
-        (connectionArray) => {
-          connectionArray.forEach((connection: any) => {
-            if (connection.close) connection.close();
-          });
-        }
-      );
-      peerInstanceRef.current.disconnect();
-      peerInstanceRef.current.destroy();
-    }
-
-    setAudioStreams(undefined);
-    setMuteStates({});
-    setUsers([]);
-    setJoinedRoom(false);
     setShowVoip(false);
-    setRoomId("");
     navigate("/");
-  }, [roomId, playerName, navigate]);
+  };
 
-  const addAudioStream = useCallback((name: string, stream: MediaStream) => {
-    if (name)
-      setAudioStreams((prev) => ({
-        ...prev,
-        [name]: stream,
-      }));
-  }, []);
-
-  const removeAudioStream = useCallback((name: string) => {
-    setAudioStreams((prev) => {
-      if (!prev) return prev;
-      const updated = { ...prev };
-      delete updated[name];
-      return updated;
-    });
-  }, []);
-
-  const toggleMute = useCallback(
-    (targetPlayerName: string) => {
-      if (targetPlayerName === playerName) {
-        const stream = myAudioRef.current;
-        if (!stream) return;
-
-        const track = stream.getAudioTracks()[0];
-        const isMuted = muteStates[playerName];
-
-        if (!track && isMuted) {
-          navigator.mediaDevices
-            .getUserMedia({
-              audio: selectedDeviceId
-                ? { deviceId: { exact: selectedDeviceId } }
-                : true,
-            })
-            .then((newStream) => {
-              const newTrack = newStream.getAudioTracks()[0];
-              stream.addTrack(newTrack);
-              myAudioRef.current = stream;
-              setMuteStates((prev) => ({ ...prev, [playerName]: false }));
-            });
-        } else if (!isMuted && track) {
-          track.stop();
-          stream.removeTrack(track);
-          setMuteStates((prev) => ({ ...prev, [playerName]: true }));
-        } else {
-          const stream = audioStreams?.[targetPlayerName];
-          if (stream instanceof MediaStream) {
-            const audioElement = Array.from(
-              document.querySelectorAll("audio")
-            ).find((audio) => audio.srcObject === stream);
-
-            if (audioElement) {
-              const isMuted = !audioElement.muted;
-              audioElement.muted = isMuted;
-              setMuteStates((prev) => ({
-                ...prev,
-                [targetPlayerName]: isMuted,
-              }));
-            }
-          }
-        }
-      }
-    },
-    [audioStreams, playerName, muteStates, selectedDeviceId]
+  const voipContextValue = useMemo(
+    () => ({
+      joinRoom,
+      leaveRoom,
+      showVoip,
+      setShowVoip,
+    }),
+    [joinRoom, leaveRoom, showVoip, version]
   );
 
   return (
-    <VoipContext.Provider
-      value={{
-        roomId,
-        playerName,
-        summonerId,
-        setSummonerId,
-        setRoomId,
-        setPlayerName,
-        joinedRoom,
-        joinRoom,
-        leaveRoom,
-        users,
-        audioStreams,
-        muteStates,
-        toggleMute,
-        myAudioRef,
-        showVoip,
-        setShowVoip,
-      }}
-    >
+    <VoipContext.Provider value={voipContextValue}>
       {children}
     </VoipContext.Provider>
   );

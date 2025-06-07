@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { ToastOptions } from "react-toastify";
 
-const BASE_URL = "ec2-15-228-45-137.sa-east-1.compute.amazonaws.com";
+export const BASE_URL = "ec2-15-228-45-137.sa-east-1.compute.amazonaws.com";
 
 export interface ISession {
   gameData: {
@@ -27,22 +27,10 @@ export interface IPlayer {
 }
 
 export interface VoipContextType {
-  roomId: string;
-  playerName: string;
-  summonerId: string;
   showVoip: boolean;
-  setRoomId: (id: string) => void;
   setShowVoip: React.Dispatch<React.SetStateAction<boolean>>;
-  setPlayerName: (name: string) => void;
-  setSummonerId: (name: string) => void;
-  joinedRoom: boolean;
   joinRoom: () => void;
-  leaveRoom: () => void;
-  users: IPlayer[];
-  audioStreams?: Record<string, MediaStream>;
-  muteStates: Record<string, boolean>;
-  toggleMute: (targetPlayerName: string) => void;
-  myAudioRef: React.MutableRefObject<MediaStream | null>;
+  leaveRoom: (manualLeave?: boolean) => void;
 }
 
 interface TeamPlayer {
@@ -63,8 +51,8 @@ export interface Teams {
 }
 
 export interface GameContextType {
-  teams?: Teams;
-  setTeams: React.Dispatch<React.SetStateAction<Teams | undefined>>;
+  teams: Teams;
+  setTeams: React.Dispatch<React.SetStateAction<Teams>>;
   data?: ISession;
   setData: React.Dispatch<React.SetStateAction<ISession | undefined>>;
 }
@@ -114,14 +102,16 @@ export enum IpcMethod {
   UPDATER_DOWNLOAD = "updater:download",
   UPDATER_INSTALL = "updater:install",
   SET_AUDIO = "audio:set",
-  GET_AUDIO = "audio:get"
+  GET_AUDIO = "audio:get",
+  GET_AUTO_JOIN_CALL = "autoJoinCall:get",
+  SET_AUTO_JOIN_CALL = "autoJoinCall:set",
 }
 
 export interface ToastNotify
   extends Record<
     "success" | "error" | "info" | "warning" | "custom",
     (message: string, options?: ToastOptions) => void
-  > {}
+  > { }
 
 export interface Page {
   [key: string]: React.ReactElement;
@@ -137,4 +127,5 @@ export interface VoipProviderProps {
 
 export interface IStore {
   audioDeviceId: string | null;
+  autoJoinCall: boolean;
 }

@@ -8,6 +8,7 @@ import ApiService from "./helpers/axios";
 import isProcessRunning from "./helpers/inspect";
 import { IpcMethod } from "../src/interfaces";
 import { getAutoUpdater } from "./helpers/auto-updater";
+import "dotenv/config";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, "..");
@@ -26,7 +27,7 @@ const autoUpdater = getAutoUpdater();
 
 function createWindow() {
   isProcessRunning().then((isRunning) => {
-    if (!isRunning) {
+    if (!isRunning && !process.env.DEV) {
       dialog.showErrorBox(
         "League of Legends não está aberto",
         "Por favor, abra o League of Legends e faça login antes de iniciar o aplicativo."
@@ -133,4 +134,12 @@ ipcMain.handle(IpcMethod.GET_AUDIO, () => {
 
 ipcMain.handle(IpcMethod.SET_AUDIO, (_event, id: string) => {
   store.set("audioDeviceId", id);
+});
+
+ipcMain.handle(IpcMethod.GET_AUTO_JOIN_CALL, () => {
+  return store.get("autoJoinCall");
+});
+
+ipcMain.handle(IpcMethod.SET_AUTO_JOIN_CALL, (_event, value: boolean) => {
+  store.set("autoJoinCall", value);
 });

@@ -13,7 +13,7 @@ const Sidebar = ({
 }) => {
   const sidebarState = useState(false);
   const { showVoip } = useVoip();
-  const [isOpen, _] = sidebarState;
+  const [isOpen, setIsOpen] = sidebarState;
   return (
     <div className="flex grow relative">
       <div
@@ -29,10 +29,8 @@ const Sidebar = ({
       >
         <ul className="space-y-2">
           {Object.entries(routes).map(([key, route]) => {
-            if (key === "voip") {
-              if (!showVoip) return null;
-            }
-            return <PageButton key={key} route={route} name={key} />;
+            if (key === "voip" && !showVoip) return null;
+            return <PageButton key={key} route={route} name={key} setIsOpen={setIsOpen} />;
           })}
         </ul>
       </div>
