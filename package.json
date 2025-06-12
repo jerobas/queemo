@@ -3,7 +3,7 @@
   "description": "Uma forma simples e rápida de aceitar partidas e se comunicar. O VOIP do League Of Legends chegou!",
   "name": "queemo",
   "private": true,
-  "version": "0.2.6",
+  "version": "0.2.7",
   "type": "module",
   "homepage": "https://jerobas.github.io/queemo/",
   "scripts": {
